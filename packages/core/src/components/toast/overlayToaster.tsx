@@ -31,6 +31,27 @@ export interface OverlayToasterState {
     toasts: ToastOptions[];
 }
 
+export interface OverlayToasterCreateOptions {
+    /**
+     * A function to render the OverlayToaster React component onto a newly
+     * created DOM element.
+     *
+     * Defaults to `ReactDOM.render`. A future version of Blueprint will default
+     * to using React 18's createRoot API, but it's possible to configure this
+     * function to use createRoot on earlier Blueprint versions.
+     *
+     * @example
+     * ```ts
+     * import { createRoot } from "react-dom/client";
+     *
+     * OverlayToaster.create(toasterProps, undefined, {
+     *   domRenderer: (toaster, containerElement) => createRoot(containerElement).render(toaster),
+     * });
+     * ```
+     */
+    domRenderer?: (toaster: React.ReactElement<OverlayToasterProps>, containerElement: HTMLElement) => void;
+}
+
 /**
  * OverlayToaster component.
  *
@@ -50,14 +71,21 @@ export class OverlayToaster extends AbstractPureComponent<OverlayToasterProps, O
      * Create a new `Toaster` instance that can be shared around your application.
      * The `Toaster` will be rendered into a new element appended to the given container.
      */
-    public static create(props?: OverlayToasterProps, container = document.body): Toaster {
+    public static create(
+        props?: OverlayToasterProps,
+        container = document.body,
+        options?: OverlayToasterCreateOptions,
+    ): Toaster {
         if (props != null && props.usePortal != null && !isNodeEnv("production")) {
             console.warn(TOASTER_WARN_INLINE);
         }
         const containerElement = document.createElement("div");
         container.appendChild(containerElement);
         const toaster = React.createRef<OverlayToaster>();
-        ReactDOM.render(<OverlayToaster {...props} ref={toaster} usePortal={false} />, containerElement);
+
+        const domRenderer = options?.domRenderer ?? ReactDOM.render;
+        domRenderer(<OverlayToaster {...props} ref={toaster} usePortal={false} />, containerElement);
+
         if (toaster.current == null) {
             throw new Error(TOASTER_CREATE_NULL);
         }
