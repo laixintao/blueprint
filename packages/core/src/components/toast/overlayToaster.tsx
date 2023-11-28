@@ -56,14 +56,12 @@ export class OverlayToaster extends AbstractPureComponent<OverlayToasterProps, O
         }
         const containerElement = document.createElement("div");
         container.appendChild(containerElement);
-        const toaster = ReactDOM.render<OverlayToasterProps>(
-            <OverlayToaster {...props} usePortal={false} />,
-            containerElement,
-        ) as OverlayToaster;
-        if (toaster == null) {
+        const toaster = React.createRef<OverlayToaster>();
+        ReactDOM.render(<OverlayToaster {...props} ref={toaster} usePortal={false} />, containerElement);
+        if (toaster.current == null) {
             throw new Error(TOASTER_CREATE_NULL);
         }
-        return toaster;
+        return toaster.current;
     }
 
     public state: OverlayToasterState = {
